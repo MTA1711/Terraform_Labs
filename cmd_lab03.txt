@@ -1,0 +1,17 @@
+#dowload provider et init backend
+terraform init
+
+#bien formater(indenter fichier modifié)
+terraform fmt    
+
+#valider la syntaxe de notre code
+terraform validate
+
+#decrire les taches et ressources qui seront crées suite "terraform apply"
+terraform plan
+
+#créer infra ou la mettre à jour si elle existe
+terraform apply
+
+#detruire infra crée
+terraform destroy
