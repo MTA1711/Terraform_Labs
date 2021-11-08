@@ -9,36 +9,10 @@ terraform {
 
 #configure the AWS Provider
 provider "aws" {
-  region     = "us-east-1"
-  access_key = "AKIARBEGBEKMAYSGGQ55"
-  secret_key = "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"
+  region = "us-east-1"
 }
 
-resource "aws_instance" "web_ec2" {
-  ami             = data.aws_ami.ami_amazon_linux.id
-  instance_type   = var.taille_ec2
-  key_name        = "devops-amandine"
-  security_groups = [aws_security_group.amandine-sg-tls-http.name]
-
-  tags = var.ec2_tag
-
-  root_block_device {
-    delete_on_termination = true
-  }
-}
-
-resource "aws_eip" "lb" {
-  #instance = aws_instance.web_ec2.id
-  vpc = true
-
-  tags = var.ec2_tag
-}
-
-resource "aws_eip_association" "eip_assoc" {
-  instance_id   = aws_instance.web_ec2.id
-  allocation_id = aws_eip.lb.id
-}
-
+#create most recent amazon linux image
 data "aws_ami" "ami_amazon_linux" {
   most_recent = true
   owners      = ["amazon"]
@@ -58,3 +32,58 @@ data "aws_ami" "ami_amazon_linux" {
     values = ["hvm"]
   }
 }
+
+#create ec2
+resource "aws_instance" "web_ec2" {
+  ami             = data.aws_ami.ami_amazon_linux.id
+  instance_type   = var.taille_ec2
+  key_name        = "devops-amandine"
+  security_groups = [aws_security_group.amandine-sg-tls-http.name]
+
+  tags = var.ec2_tag
+
+  #provisioner remote(distant):install and start nginx after creating our vm
+  provisioner "remote-exec" {
+    inline = [
+      "sudo amazon-linux-extras install -y nginx1.12",
+      "sudo systemctl start nginx",
+    ]
+  }
+
+  #provisioner local: availibity zone
+  provisioner "local-exec" {
+    command = "echo ${aws_instance.web_ec2.id} >> infos_ec2.txt"
+  }
+
+  provisioner "local-exec" {
+    command = "echo ${aws_instance.web_ec2.availability_zone} >> infos_ec2.txt"
+  }
+
+  connection {
+    type        = "ssh"
+    user        = "ec2-user"
+    private_key = file("./devops-amandine.pem")
+    host        = self.public_ip
+    timeout     = "30s"
+  }
+
+  root_block_device {
+    delete_on_termination = true
+  }
+}
+
+resource "aws_eip" "lb" {
+  #instance = aws_instance.web_ec2.id
+  vpc = true
+  #provisioner local: get ip
+  provisioner "local-exec" {
+    command = "echo ${aws_instance.web_ec2.public_ip} >> infos_ec2.txt"
+  }
+  tags = var.ec2_tag
+}
+
+resource "aws_eip_association" "eip_assoc" {
+  instance_id   = aws_instance.web_ec2.id
+  allocation_id = aws_eip.lb.id
+}
+
