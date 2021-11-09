@@ -5,6 +5,13 @@ terraform {
       version = "~> 3.0"
     }
   }
+
+  #define the remote backend
+  backend "s3" {
+    bucket = "terraform-backend-amandine"
+    key    = "./terraform.tfstate"
+    region = "us-east-1"
+  }
 }
 
 #configure the AWS Provider

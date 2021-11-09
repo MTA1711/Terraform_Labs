@@ -1,0 +1,26 @@
+#dans votre terminal, dans le dossier de ce tp ajouter(via ces lignes de commandes) les var env pour vos acces key obtenues au moment de la creation de votre compte aws.
+export AWS_ACCESS_KEY_ID="valeur-de-AWS_ACCESS_KEY_ID"
+
+export AWS_SECRET_ACCESS_KEY="valeur-de-AWS_SECRET_ACCESS_KEY"
+
+#mettre le fichier devops-amandine.pem dans ce repertoire de travail
+
+#sur aws, créer une ressource s3 nommée "terraform-backend-amandine" (ou comme vous le souhaitez) pour votre backend
+
+#download provider et init backend
+terraform init
+
+#bien formater(indenter fichier modifié)
+terraform fmt    
+
+#valider la syntaxe de notre code
+terraform validate
+
+#decrire les taches et ressources qui seront crées suite "terraform apply"
+terraform plan
+
+#créer infra ou la mettre à jour si elle existe
+terraform apply
+
+#detruire infra crée
+terraform destroy
