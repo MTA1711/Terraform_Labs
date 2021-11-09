@@ -1,6 +1,6 @@
-resource "aws_security_group" "amandine-sg-tls-http" {
-  name        = "amandine-sg-tls-http"
-  description = "amandine-sg-tls-http inbound traffic"
+resource "aws_security_group" "sg-tls-http-ssh" {
+  name        = "sg-tls-http"
+  description = "sg-tls-http-ssh inbound traffic"
 
   ingress {
     description = "TLS from VPC"
@@ -11,7 +11,7 @@ resource "aws_security_group" "amandine-sg-tls-http" {
   }
 
   ingress {
-    description = "TLS from VPC"
+    description = "HTTP from VPC"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -20,7 +20,7 @@ resource "aws_security_group" "amandine-sg-tls-http" {
 
   #for ssh connexion
   ingress {
-    description = "TLS from VPC"
+    description = "SSH from VPC"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
@@ -34,8 +34,5 @@ resource "aws_security_group" "amandine-sg-tls-http" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-
-  tags = {
-    Name = "amandine-sg-tls-http"
-  }
+  tags = var.sg_tag
 }

@@ -1,25 +1,3 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 3.0"
-    }
-  }
-
-  #define the remote backend
-  backend "s3" {
-    bucket = "terraform-backend-amandine"
-    key    = "./terraform.tfstate"
-    region = "us-east-1"
-  }
-}
-
-#configure the AWS Provider
-provider "aws" {
-  region = "us-east-1"
-}
-
-#create most recent amazon linux image
 data "aws_ami" "ami_amazon_linux" {
   most_recent = true
   owners      = ["amazon"]
@@ -43,11 +21,10 @@ data "aws_ami" "ami_amazon_linux" {
 #create ec2
 resource "aws_instance" "web_ec2" {
   ami             = data.aws_ami.ami_amazon_linux.id
-  instance_type   = var.taille_ec2
-  key_name        = "devops-amandine"
-  security_groups = [aws_security_group.amandine-sg-tls-http.name]
-
-  tags = var.ec2_tag
+  instance_type   = var.instance_type
+  key_name        = var.key_name
+  security_groups = [var.sg_name]
+  tags            = var.ec2_tag
 
   #provisioner remote(distant):install and start nginx after creating our vm
   provisioner "remote-exec" {
@@ -69,7 +46,7 @@ resource "aws_instance" "web_ec2" {
   connection {
     type        = "ssh"
     user        = "ec2-user"
-    private_key = file("./devops-amandine.pem")
+    private_key = file(var.key_path)
     host        = self.public_ip
     timeout     = "30s"
   }
@@ -78,19 +55,3 @@ resource "aws_instance" "web_ec2" {
     delete_on_termination = true
   }
 }
-
-resource "aws_eip" "lb" {
-  #instance = aws_instance.web_ec2.id
-  vpc = true
-  #provisioner local: get ip
-  provisioner "local-exec" {
-    command = "echo ${aws_instance.web_ec2.public_ip} >> infos_ec2.txt"
-  }
-  tags = var.ec2_tag
-}
-
-resource "aws_eip_association" "eip_assoc" {
-  instance_id   = aws_instance.web_ec2.id
-  allocation_id = aws_eip.lb.id
-}
-
